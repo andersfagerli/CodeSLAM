@@ -1,0 +1,44 @@
+### Check codeslam/config/default.py for more details on configuration ###
+INPUT:
+  IMAGE_SIZE: [192, 256]
+  IMAGE_CHANNELS: 1
+  PIXEL_MEAN: [111.33145032, 106.68657402, 99.29848617]
+  PIXEL_STD: [65.31386607, 64.87560227, 65.97477225]
+OUTPUT:
+  IMAGE_SIZE: [192, 256]
+  CHANNELS: 1
+  PIXEL_MEAN: 3728.1855890148872
+  PIXEL_MAX: 65535
+MODEL:
+  NAME: "codeslam"
+  UNET:
+    ENCODER:
+      OUT_CHANNELS: [16, 32, 64, 128, 256]
+    DECODER:
+      OUT_CHANNELS: [256, 128, 64, 32, 16]
+  CVAE:
+    ENCODER:
+      OUT_CHANNELS: [16, 32, 64, 128, 256]
+    DECODER:
+      OUT_CHANNELS: [256, 128, 64, 32, 16]
+    LATENT:
+      INPUT_DIM: [6, 8]
+      DIMENSIONS: 128
+TRAINER:
+  MAX_ITER: 100000
+  BATCH_SIZE: 32
+  SAVE_STEP: 2000
+  KL_MILESTONE: 30000
+  OPTIMIZER:
+    TYPE: "adam"
+    LR: 0.0001
+    WEIGHT_DECAY: 0.0
+    GAMMA: 0.1
+DATASETS:
+  DATASET_DIR: "datasets"
+  TRAIN: ("SceneNetRGBD_train_0",)
+OUTPUT_DIR: "outputs/scenenet"
+OUTPUT_DIR_MODEL: "outputs/scenenet/models"
+PRETRAINED_WEIGHTS: "outputs/scenenet/models/model_final.pth"
+DEMO_RGB_PATH: "demo/scenenet/rgb/"
+DEMO_DEPTH_PATH: "demo/scenenet/depth/"
