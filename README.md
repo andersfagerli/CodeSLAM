@@ -47,7 +47,7 @@ Configuration files are located in configs/, where you can set parameters, locat
 ## Train
 After downloading and placing the datasets correctly, do e.g
 ```
-python3 train.py configs/scenenet_scratch.yaml
+python3 train.py configs/scenenet.yaml
 ```
 to train on the SceneNet RGB-D dataset.
 
@@ -60,7 +60,7 @@ in a new shell, where OUTPUT_DIR is the location of the outputs specified in the
 ## Testing
 After having trained a model, do e.g
 ```
-python3 demo.py configs/scenenet_scratch.yaml
+python3 demo.py configs/scenenet.yaml
 ```
 to test on a set of demo images located in demo/
 
