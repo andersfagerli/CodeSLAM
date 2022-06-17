@@ -8,7 +8,6 @@ import torch.utils.tensorboard
 
 from codeslam.utils.metriclogger import MetricLogger
 from codeslam.utils import torch_utils
-from codeslam.trainer import criterion
 from codeslam.trainer import weighting
 
 
@@ -38,16 +37,14 @@ def start_train(cfg, model, data_loader, optimizer, checkpointer, arguments, sch
             targets = torch_utils.to_cuda(targets)
 
             # Forward
-            reconstruction, b, mu, logvar = model(images, targets)
+            loss_dict = model(images, targets)
 
-            # Loss
-            kl_loss = criterion.kl_divergence(mu, logvar)
-            reconstruction_loss, reconstruction_loss_unweighted = criterion.reconstruction_loss(reconstruction, targets, b)
+            # Weighting
+            weights = dict(kl_div=weighting.beta(iteration, milestone))
+            loss_dict, unweighted_loss_dict = weighting.weigh(loss_dict, weights)
 
-            # KL anneal (beta)
-            beta = weighting.beta(iteration, milestone, eps=1e-04)
-  
-            loss = reconstruction_loss + kl_loss * beta
+            # Total loss
+            loss = sum(loss for loss in loss_dict.values())
 
             # Backward
             optimizer.zero_grad()
@@ -66,10 +63,9 @@ def start_train(cfg, model, data_loader, optimizer, checkpointer, arguments, sch
                 # Logging to terminal and file
                 meters.update(
                     total_loss = loss,
-                    recon_loss = reconstruction_loss,
-                    kl_div = kl_loss,
-                    recon_loss_unw = reconstruction_loss_unweighted,
-                    beta = beta
+                    recon_loss = model.unweighted_reconstructioin_loss,
+                    kl_div = unweighted_loss_dict["kl_div"],
+                    beta = weighting.beta(iteration, milestone)
                 )
                 meters.update(time=batch_time)
                 eta_seconds = meters.time.global_avg * (max_iter - iteration)
@@ -87,13 +83,13 @@ def start_train(cfg, model, data_loader, optimizer, checkpointer, arguments, sch
 
                 # Tensorboard
                 summary_writer.add_scalar('losses/total_loss', loss, global_step=iteration)
-                summary_writer.add_scalar('losses/reconstruction_loss', reconstruction_loss, global_step=iteration)
-                summary_writer.add_scalar('losses/kl_divergence', kl_loss, global_step=iteration)
-                summary_writer.add_scalar('losses/reconstruction_loss_unweighted', reconstruction_loss_unweighted, global_step=iteration)
+                summary_writer.add_scalar('losses/unweighted_reconstruction_loss', model.unweighted_reconstruction_loss, global_step=iteration)
+                for loss_name, loss_item in unweighted_loss_dict.items():
+                    summary_writer.add_scalar('losses/{}'.format(loss_name), loss_item, global_step=iteration)
                 summary_writer.add_scalar('parameters/lr', optimizer.param_groups[0]['lr'], global_step=iteration)
-                summary_writer.add_scalar('parameters/beta', beta, global_step=iteration)
-                summary_writer.add_scalar('uncertainty/b_mean', torch.mean(b), global_step=iteration)
-                summary_writer.add_scalar('uncertainty/b_median', torch.median(b), global_step=iteration)
+                summary_writer.add_scalar('parameters/beta', weighting.beta(iteration, milestone), global_step=iteration)
+                summary_writer.add_scalar('uncertainty/mean', torch.mean(model.b), global_step=iteration)
+                summary_writer.add_scalar('uncertainty/median', torch.median(model.b), global_step=iteration)
             
             # Save model
             if cfg.TRAINER.SAVE_STEP > 0 and iteration % cfg.TRAINER.SAVE_STEP == 0:

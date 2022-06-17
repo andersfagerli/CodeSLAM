@@ -1,9 +1,7 @@
 ###################################################################
 ### Code modified from https://github.com/milesial/Pytorch-UNet ###
 ###################################################################
-
 import torch.nn as nn
-import torchvision
 
 from .blocks import DoubleConv, Down, Up, OutConv
 
