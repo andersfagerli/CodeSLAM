@@ -29,16 +29,14 @@ class CVAE(nn.Module):
         self.decoder_in = nn.Linear(self.latent_dim, self.d_ch[0]*self.latent_input_dim[0]*self.latent_input_dim[1])
 
         # Decoder
-        self.d_inc = DoubleConvCat(self.d_ch[0], self.d_ch[0])
+        self.d_inc = DoubleConvCat(self.d_ch[0], self.d_ch[0], linear=True)
         self.up1 = Up(self.d_ch[0], self.d_ch[1], bilinear, linear=True)   
         self.up2 = Up(self.d_ch[1], self.d_ch[2], bilinear, linear=True)   
         self.up3 = Up(self.d_ch[2], self.d_ch[3], bilinear, linear=True)   
         self.up4 = Up(self.d_ch[3], self.d_ch[4], bilinear, linear=True)   
 
-        self.out = nn.Sequential(
-            OutConv(self.d_ch[4], out_ch),
-            nn.Sigmoid()
-        )
+        self.out = OutConv(self.d_ch[4], out_ch)
+
 
     def encode(self, feature_maps, x):
         x1, x2, x3, x4, x5, _ = feature_maps

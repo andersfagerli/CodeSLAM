@@ -4,8 +4,6 @@
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-
 
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
@@ -29,9 +27,9 @@ class DoubleConv(nn.Module):
 
 class DoubleConvCat(nn.Module):
     """Concat then double conv"""
-    def __init__(self, in_channels, out_channels, mid_channels=None):
+    def __init__(self, in_channels, out_channels, mid_channels=None, linear=False):
         super().__init__()
-        self.conv = DoubleConv(in_channels*2, out_channels, mid_channels=mid_channels)
+        self.conv = DoubleConv(in_channels*2, out_channels, mid_channels=mid_channels, linear=linear)
     
     def forward(self, x1, x2):
         x = torch.cat([x1, x2], dim=1)
@@ -105,7 +103,6 @@ class OutConv(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(OutConv, self).__init__()
         self.up = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2) # "Deconvolution" for the last layer
-        self.norm = nn.BatchNorm2d(out_channels)
 
     def forward(self, x):
-        return self.norm(self.up(x))
+        return self.up(x)
