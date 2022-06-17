@@ -1,12 +1,11 @@
 from .unet import UNet
 from .cvae import CVAE
-from .codeslam import CodeSLAM, CodeSLAMResNet18
+from .codeslam import CodeSLAM
 
 _MODELS = {
     'unet': UNet,
     'cvae': CVAE,
     'codeslam': CodeSLAM,
-    'codeslam_resnet': CodeSLAMResNet18
 }
 
 def make_model(cfg):
