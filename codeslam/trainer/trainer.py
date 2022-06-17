@@ -9,6 +9,7 @@ import torch.utils.tensorboard
 from codeslam.utils.metriclogger import MetricLogger
 from codeslam.utils import torch_utils
 from codeslam.trainer import weighting
+from codeslam.trainer import inference
 
 
 def start_train(cfg, model, data_loader, optimizer, checkpointer, arguments, scheduler=None):
@@ -94,6 +95,16 @@ def start_train(cfg, model, data_loader, optimizer, checkpointer, arguments, sch
             # Save model
             if cfg.TRAINER.SAVE_STEP > 0 and iteration % cfg.TRAINER.SAVE_STEP == 0:
                 checkpointer.save("model_{:06d}".format(iteration), **arguments)
+
+            # Validation
+            if cfg.TRAINER.EVAL_STEP > 0 and iteration % cfg.TRAINER.EVAL_STEP == 0:
+                model.eval()
+                eval_results = inference.do_evaluation(cfg, model, iteration=iteration)
+                model.train()
+
+                for eval_result, dataset in zip(eval_results, cfg.DATASETS.TEST):
+                    for key in eval_result:
+                        summary_writer.add_scalar('metrics/{}'.format(key), eval_result[key], global_step=iteration)
 
     except KeyboardInterrupt:
         print(f'\n\nCtrl-c, saving current model ...')
