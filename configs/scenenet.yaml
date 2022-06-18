@@ -25,19 +25,21 @@ MODEL:
       INPUT_DIM: [6, 8]
       DIMENSIONS: 128
 TRAINER:
-  MAX_ITER: 100000
+  EPOCHS: 6
   BATCH_SIZE: 32
-  SAVE_STEP: 2000
+  SAVE_STEP: -1
   EVAL_STEP: 1000
-  KL_MILESTONE: 30000
+  KL_MILESTONE: 2
   OPTIMIZER:
     TYPE: "adam"
     LR: 0.0001
     WEIGHT_DECAY: 0.0
     GAMMA: 0.1
+    MILESTONES: [4, 5]
 DATASETS:
   DATASET_DIR: "datasets"
   TRAIN: ("SceneNetRGBD_train_0",)
+  TEST: ("SceneNetRGBD_train_16",)
 OUTPUT_DIR: "outputs/scenenet"
 OUTPUT_DIR_MODEL: "outputs/scenenet/models"
 PRETRAINED_WEIGHTS: "outputs/scenenet/models/model_final.pth"

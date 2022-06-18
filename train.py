@@ -17,17 +17,9 @@ from codeslam.trainer.scheduler import LinearMultiStepWarmUp
 np.random.seed(0)
 torch.manual_seed(0)
 
-# Allow torch/cudnn to optimize/analyze the input/output shape of convolutions
-# To optimize forward/backward pass.
-# This will increase model throughput for fixed input shape to the network
 torch.backends.cudnn.benchmark = True
-
-# Cudnn is not deterministic by default. Set this to True if you want
-# to be sure to reproduce your results
 torch.backends.cudnn.deterministic = True
 
-# For debugging
-torch.autograd.set_detect_anomaly(True)
 
 def train(cfg):
     logger = logging.getLogger('CodeSLAM.trainer')
@@ -37,20 +29,22 @@ def train(cfg):
     model = torch_utils.to_cuda(model)
     
     # Load data
-    data_loader = make_data_loader(cfg, is_train=True, shuffle=True, max_iter=cfg.TRAINER.MAX_ITER)
+    data_loader = make_data_loader(cfg, is_train=True, shuffle=True)
     
     # Optimizer
     optimizer = make_optimizer(cfg, model)
 
     # Learning rate scheduler
-    scheduler = LinearMultiStepWarmUp(cfg, optimizer) if cfg.TRAINER.OPTIMIZER.GAMMA > 0 else None
+    iterations = len(data_loader)
+    milestones = (np.array(cfg.TRAINER.OPTIMIZER.MILESTONES)-1)*iterations
+    scheduler = LinearMultiStepWarmUp(cfg, optimizer, milestones) if cfg.TRAINER.OPTIMIZER.GAMMA < 1 or len(milestones) > 0 else None
 
     # Checkpointer for saving model during and after training
     checkpointer = CheckPointer(
         model, optimizer, save_dir=cfg.OUTPUT_DIR_MODEL, save_to_disk=True, logger=logger,
     )
 
-    arguments = {"iteration": 0}
+    arguments = {"global_step": 0, "iteration": 0, "epoch": 0}
     extra_checkpoint_data = checkpointer.load()
     arguments.update(extra_checkpoint_data)
     

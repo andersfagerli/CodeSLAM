@@ -55,20 +55,22 @@ cfg.MODEL.CVAE.LATENT.INPUT_DIM = [6, 8]            # Size of feature map (HxW) 
 # TRAINER
 # -----------------------------------------------------------------------------
 cfg.TRAINER = CN()
-cfg.TRAINER.MAX_ITER = 100000           # Number of iterations to train for
+cfg.TRAINER.EPOCHS = 10                 # Number of epochs
+cfg.TRAINER.MAX_ITER = 100000           # Set EPOCHS=1 to train for MAX_ITER number of iterations instead
 cfg.TRAINER.BATCH_SIZE = 16
 cfg.TRAINER.SAVE_STEP = -1              # Save model periodically during training (-1 to not save)
 cfg.TRAINER.LOG_STEP = 10               # Log metrics periodically during training (-1 to not log)
-cfg.TRAINER.KL_MILESTONE = 0            # When to activate KL loss in loss function
+cfg.TRAINER.EVAL_STEP = -1              # Evaluate on validation set during training (-1 to not evaluate)
+cfg.TRAINER.KL_MILESTONE = 0            # Epoch to activate KL loss in loss function
 
 cfg.TRAINER.OPTIMIZER = CN()
 cfg.TRAINER.OPTIMIZER.TYPE = "adam"
-cfg.TRAINER.OPTIMIZER.LR = 0.01
+cfg.TRAINER.OPTIMIZER.LR = 3e-4
 cfg.TRAINER.OPTIMIZER.WEIGHT_DECAY = 0.0
 cfg.TRAINER.OPTIMIZER.MOMENTUM = 0.9
-cfg.TRAINER.OPTIMIZER.MILESTONES = [cfg.TRAINER.MAX_ITER]   # List of milestones to decrease learning rate
-cfg.TRAINER.OPTIMIZER.GAMMA = 0.0                           # Factor to decrease learning rate with at each milestone
-cfg.TRAINER.OPTIMIZER.WARMUP_PERIOD = 0                     # Which step to end learning rate warmup
+cfg.TRAINER.OPTIMIZER.MILESTONES = []       # List of milestones (epochs) to decrease learning rate
+cfg.TRAINER.OPTIMIZER.GAMMA = 1.0           # Factor to decrease learning rate with at each milestone
+cfg.TRAINER.OPTIMIZER.WARMUP_PERIOD = 0.0   # Which step to end learning rate warmup
 
 
 

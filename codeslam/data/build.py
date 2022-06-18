@@ -6,9 +6,11 @@ from codeslam.data.dataset import build_dataset
 from codeslam.data.transforms import build_transforms
 
 
-def make_data_loader(cfg, is_train=True, shuffle=True, max_iter=None, start_iter=0):
+def make_data_loader(cfg, is_train=True, shuffle=True, start_iter=0):
     train_transform = build_transforms(cfg, is_train=is_train)
     dataset_list = cfg.DATASETS.TRAIN if is_train else cfg.DATASETS.TEST
+    max_iter = cfg.TRAINER.MAX_ITER
+    epochs = cfg.TRAINER.EPOCHS
 
     datasets = build_dataset(
         cfg.DATASETS.DATASET_DIR,
@@ -25,7 +27,7 @@ def make_data_loader(cfg, is_train=True, shuffle=True, max_iter=None, start_iter
 
         batch_size = cfg.TRAINER.BATCH_SIZE if is_train else cfg.TEST.BATCH_SIZE
         batch_sampler = torch.utils.data.sampler.BatchSampler(sampler=sampler, batch_size=batch_size, drop_last=is_train)
-        if max_iter is not None:
+        if max_iter is not None and epochs == 1:
             batch_sampler = samplers.IterationBasedBatchSampler(batch_sampler, num_iterations=max_iter, start_iter=start_iter)
 
         data_loader = DataLoader(dataset, num_workers=cfg.DATA_LOADER.NUM_WORKERS, batch_sampler=batch_sampler,

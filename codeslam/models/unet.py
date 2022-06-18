@@ -45,6 +45,9 @@ class UNet(nn.Module):
         x3_out = self.up2(x2_out, x3)
         x4_out = self.up3(x3_out, x2)
         x5_out = self.up4(x4_out, x1)
+
         out = self.out(x5_out)
 
-        return (x1_out, x2_out, x3_out, x4_out, x5_out, out)
+        feature_maps = (x1_out, x2_out, x3_out, x4_out, x5_out)
+
+        return  feature_maps, out

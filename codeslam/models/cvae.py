@@ -39,7 +39,7 @@ class CVAE(nn.Module):
 
 
     def encode(self, feature_maps, x):
-        x1, x2, x3, x4, x5, _ = feature_maps
+        x1, x2, x3, x4, x5 = feature_maps
         
         x = self.down1(x, x5)
         x = self.down2(x, x4)
@@ -50,7 +50,7 @@ class CVAE(nn.Module):
         return x
 
     def decode(self, feature_maps, z):
-        x1, x2, x3, x4, x5, _ = feature_maps
+        x1, x2, x3, x4, x5 = feature_maps
 
         x_flattened = self.decoder_in(z)
         x = x_flattened.view(-1, self.d_ch[0], self.latent_input_dim[0], self.latent_input_dim[1])
