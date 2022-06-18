@@ -6,6 +6,10 @@ class DatasetCatalog:
         'SceneNetRGBD_train_0': {
             'data_dir': "SceneNetRGBD/train_0/train/",
             'split': "train"
+        },
+        'SceneNetRGBD_train_16': {
+            'data_dir': "SceneNetRGBD/train_16/train/",
+            'split': "val"
         }
     }
 
