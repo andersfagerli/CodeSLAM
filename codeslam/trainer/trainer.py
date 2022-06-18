@@ -79,6 +79,7 @@ def start_train(cfg, model, data_loader, optimizer, checkpointer, arguments, sch
                     # Logging to terminal and file
                     meters.update(
                         total_loss = loss,
+                        recon_loss = model.unweighted_reconstruction_loss,
                         kl_div = unweighted_loss_dict["kl_div"],
                         beta = weighting.beta(global_step, milestone)
                     )
@@ -99,7 +100,7 @@ def start_train(cfg, model, data_loader, optimizer, checkpointer, arguments, sch
 
                     # Tensorboard
                     summary_writer.add_scalar('losses/total_loss', loss, global_step=global_step)
-                    # summary_writer.add_scalar('losses/unweighted_reconstruction_loss', model.unweighted_reconstruction_loss, global_step=global_step)
+                    summary_writer.add_scalar('losses/unweighted_reconstruction_loss', model.unweighted_reconstruction_loss, global_step=global_step)
                     for loss_name, loss_item in unweighted_loss_dict.items():
                         summary_writer.add_scalar('losses/{}'.format(loss_name), loss_item, global_step=global_step)
                     summary_writer.add_scalar('parameters/lr', optimizer.param_groups[0]['lr'], global_step=global_step)

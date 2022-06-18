@@ -54,8 +54,8 @@ def compute_on_dataset(cfg, model, data_loader):
         with torch.no_grad():
             result = model(images)
 
-        depths = torch_utils.to_numpy(result["depth"]).squeeze(1)
-        targets = torch_utils.to_numpy(targets).squeeze(1)
+        depths = torch_utils.to_numpy(result["depth"])
+        targets = torch_utils.to_numpy(targets)
 
         metric[i,:] = evaluate(depths, targets)
     

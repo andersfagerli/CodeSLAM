@@ -36,8 +36,7 @@ class CVAE(nn.Module):
         self.up4 = Up(self.d_ch[3], self.d_ch[4], bilinear, linear=True)   
 
         self.out = OutConv(self.d_ch[4], out_ch)
-
-
+        
     def encode(self, feature_maps, x):
         x1, x2, x3, x4, x5 = feature_maps
         
