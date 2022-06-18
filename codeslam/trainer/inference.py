@@ -31,7 +31,7 @@ def do_evaluation(cfg, model, **kwargs):
 def inference(cfg, model, data_loader, dataset_name):
     dataset = data_loader.dataset
 
-    logger = logging.getLogger("DepthCVAE.inference")
+    logger = logging.getLogger("CodeSLAM.inference")
     logger.info(
         "Evaluating {} dataset({} images):".format(dataset_name, len(dataset)))
     
@@ -41,9 +41,13 @@ def inference(cfg, model, data_loader, dataset_name):
 
 
 def compute_on_dataset(cfg, model, data_loader):
-    metric = np.empty((len(data_loader), 7))    # (batches x metrics)
-
+    N = 1000 # len(dataloader) to evaluate over entire dataloader
+    metric = np.empty((N, 7))    # (batches x metrics)
+    
     for i, batch in enumerate(tqdm(data_loader)):
+        if i >= N:
+            break
+
         images, targets = batch
         images = torch_utils.to_cuda(images)
 
@@ -79,17 +83,17 @@ def evaluate(predictions, ground_truth):
     return np.array([rmse, logrmse, ard, srd, a1, a2, a3])
     
     
-def log(eval_result, output_folder, iteration=None):
-    logger = logging.getLogger("DepthCVAE.inference")
-    result_str = "rmse: {:.4f} logrmse: {:.4f} are: {:.4f} sre: {:.4f} a1: {:.4f} a2: {:.4f} a3: {:.4f}\n"\
+def log(eval_result, output_folder, global_step=None):
+    logger = logging.getLogger("CodeSLAM.inference")
+    result_str = "rmse: {:.4f} logrmse: {:.4f} ard: {:.4f} srd: {:.4f} a1: {:.4f} a2: {:.4f} a3: {:.4f}\n"\
                 .format(
-                    eval_result["rmse"], eval_result["logrmse"], eval_result["are"], eval_result["sre"],
+                    eval_result["rmse"], eval_result["logrmse"], eval_result["ard"], eval_result["srd"],
                     eval_result["a1"], eval_result["a2"], eval_result["a3"]
                 )
     logger.info(result_str)
 
-    if iteration is not None:
-        result_path = os.path.join(output_folder, 'result_{:07d}.txt'.format(iteration))
+    if global_step is not None:
+        result_path = os.path.join(output_folder, 'result_{:07d}.txt'.format(global_step))
     else:
         result_path = os.path.join(output_folder, 'result_{}.txt'.format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S')))
     with open(result_path, "w") as f:
