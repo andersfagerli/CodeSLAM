@@ -76,10 +76,9 @@ class DownCat(nn.Module):
 
 class Up(nn.Module):
     """Upscaling then double conv"""
-
     def __init__(self, in_channels, out_channels, bilinear=True, linear=False):
         super().__init__()
-
+        self.linear = linear
         # if bilinear, use the normal convolutions to reduce the number of channels
         if bilinear:
             # TODO: Fix so bilinear doesn't need an extra Conv layer
@@ -87,14 +86,18 @@ class Up(nn.Module):
                 nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
                 nn.Conv2d(in_channels, in_channels // 2, kernel_size=3, padding=1) # Only for reducing channels
             )
-            self.conv = DoubleConv(in_channels, out_channels)
         else:
             self.up = nn.ConvTranspose2d(in_channels, in_channels // 2, kernel_size=2, stride=2)
-            self.conv = DoubleConv(in_channels, out_channels, linear=linear)
+        
+        self.conv = DoubleConv(in_channels+in_channels//2 if linear else in_channels, out_channels, linear=linear)
 
     def forward(self, x1, x2):
-        x1 = self.up(x1) # (N, 256, 12, 16)
+        x1 = self.up(x1)
         x = torch.cat([x2, x1], dim=1)
+
+        if self.linear:
+            mult = torch.mul(x1, x2)
+            x = torch.cat([x, mult], dim=1)
         
         return self.conv(x)
 
