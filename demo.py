@@ -45,8 +45,6 @@ def run_demo(cfg):
     inference_time = 0
     comparisons = []
     for i, (image_path_photo, image_path_depth) in enumerate(zip(image_paths_photo, image_paths_depth)):
-        start = time.time()
-
         photo = np.array(Image.open(image_path_photo).convert("RGB"))
         depth_gt = np.array(Image.open(image_path_depth))
 
@@ -62,11 +60,15 @@ def run_demo(cfg):
 
         start = time.time()
 
-        depth, b, _, _ = model(photo_transformed)
+        with torch.no_grad():
+            result = model(photo_transformed)
         
         inference_time += time.time() - start
 
+        depth = result["depth"]
         depth = torch_utils.to_numpy(depth)
+
+        b = result["b"]
         b = torch_utils.to_numpy(b)
 
         _, depth = proximity_to_depth_transform(photo_transformed, depth)
