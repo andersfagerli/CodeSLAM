@@ -1,6 +1,6 @@
 # CodeSLAM
-PyTorch implementation of the conditional variational autoencoder (CVAE) in [CodeSLAM](https://arxiv.org/abs/1804.00874) for depth estimation. Implementation is based on https://github.com/lufficc/SSD.
-
+PyTorch implementation of the conditional variational autoencoder (CVAE) in [CodeSLAM](https://arxiv.org/abs/1804.00874) for depth estimation.
+![scenenet](demo/scenenet.png)
 
 ## Requirements
 ### PyTorch
@@ -66,3 +66,6 @@ to test on a set of demo images located in demo/
 
 ## Adding new datasets, models, etc.
 Check out https://github.com/lufficc/SSD/blob/master/DEVELOP_GUIDE.md for a guide on how to use custom datasets etc.
+
+## Acknowledgements
+Implementation is based on https://github.com/lufficc/SSD.
