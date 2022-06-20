@@ -36,6 +36,11 @@ class CVAE(nn.Module):
         self.up4 = Up(self.d_ch[3], self.d_ch[4], bilinear, linear=True)   
 
         self.out = OutConv(self.d_ch[4], out_ch)
+
+        # Image pyramid outputs
+        self.pyramid1 = nn.Sequential(nn.Conv2d(64, 1, kernel_size=1), nn.Sigmoid())
+        self.pyramid2 = nn.Sequential(nn.Conv2d(32, 1, kernel_size=1), nn.Sigmoid())
+        self.pyramid3 = nn.Sequential(nn.Conv2d(16, 1, kernel_size=1), nn.Sigmoid())
         
     def encode(self, feature_maps, x):
         x1, x2, x3, x4, x5 = feature_maps
@@ -53,12 +58,20 @@ class CVAE(nn.Module):
 
         x_flattened = self.decoder_in(z)
         x = x_flattened.view(-1, self.d_ch[0], self.latent_input_dim[0], self.latent_input_dim[1])
-        x = self.d_inc(x, x1)
-        x = self.up1(x, x2)
-        x = self.up2(x, x3)
-        x = self.up3(x, x4)
-        x = self.up4(x, x5)
-        out = self.out(x)
+        x1_out = self.d_inc(x, x1)
+        x2_out = self.up1(x1_out, x2)
+        x3_out = self.up2(x2_out, x3)
+        x4_out = self.up3(x3_out, x4)
+        x5_out = self.up4(x4_out, x5)
+
+        out = []
+
+        if self.training:
+            out.append(self.pyramid1(x3_out))
+            out.append(self.pyramid2(x4_out))
+            out.append(self.pyramid3(x5_out))
+
+        out.append(self.out(x5_out))
 
         return out
 
@@ -76,11 +89,8 @@ class CVAE(nn.Module):
         return z.cuda() if torch.cuda.is_available() else z
 
     def forward(self, feature_maps, x=None):
-        if x is None: # Testing (no ground truth depth maps)
-            z = self.sample(zero_code=True)
-            out = self.decode(feature_maps, z)
-            mu = logvar = None
-        else: # Training
+        is_training = x is not None
+        if is_training:
             x = self.encode(feature_maps, x)
 
             x_flattened = torch.flatten(x, start_dim=1)
@@ -90,5 +100,9 @@ class CVAE(nn.Module):
             z = self.reparameterize(mu, logvar)
 
             out = self.decode(feature_maps, z)
+        else:
+            z = self.sample(zero_code=True)
+            out = self.decode(feature_maps, z)
+            mu = logvar = None
 
         return (out, mu, logvar)

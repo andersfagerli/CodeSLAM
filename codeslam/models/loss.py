@@ -19,9 +19,14 @@ class Criterion(nn.Module):
     
         return loss
     
-    def forward(self, depth, mu, logvar, target, b=None):
+    def forward(self, depths, mu, logvar, targets, bs):
         kl_div = self.kl_divergence(mu, logvar)
-        reconstruction_loss = self.reconstruction_loss(depth, target, b)
+
+        reconstruction_loss = torch.tensor(0.0).to(mu.device)
+        for i, (depth, b) in enumerate(zip(depths, bs)):
+            h, w = depth.size()[2:]
+            target = F.interpolate(targets, (h, w))
+            reconstruction_loss += self.reconstruction_loss(depth, target, b) * (4**i) / len(depths)
 
         loss_dict = dict(
             kl_div=kl_div,

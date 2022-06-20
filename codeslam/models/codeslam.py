@@ -40,13 +40,13 @@ class CodeSLAM(nn.Module):
         feature_maps, b = self.unet(input)
         depth, mu, logvar = self.cvae(feature_maps, target)
 
-        self._b = b
-        self._depth = depth
+        self._b = b[-1]
+        self._depth = depth[-1]
 
         if is_training:
             self._target = target
             
-            loss_dict = self.loss(depth, mu, logvar, target, b=b)
+            loss_dict = self.loss(depth, mu, logvar, target, b)
             return loss_dict
         else:
             result = dict(depth=self.depth, b=self.b)

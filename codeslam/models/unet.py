@@ -30,10 +30,12 @@ class UNet(nn.Module):
             nn.Sigmoid()
         )
 
+        # Image pyramid outputs
+        self.pyramid1 = nn.Sequential(nn.Conv2d(64, 1, kernel_size=1), nn.Sigmoid())
+        self.pyramid2 = nn.Sequential(nn.Conv2d(32, 1, kernel_size=1), nn.Sigmoid())
+        self.pyramid3 = nn.Sequential(nn.Conv2d(16, 1, kernel_size=1), nn.Sigmoid())
+
     def forward(self, x):
-        """
-        Forwards input and returns each feature map in the decoder and final output
-        """
         x1 = self.down1(x)
         x2 = self.down2(x1)
         x3 = self.down3(x2)
@@ -46,7 +48,14 @@ class UNet(nn.Module):
         x4_out = self.up3(x3_out, x2)
         x5_out = self.up4(x4_out, x1)
 
-        out = self.out(x5_out)
+        out = []
+
+        if self.training:
+            out.append(self.pyramid1(x3_out))
+            out.append(self.pyramid2(x4_out))
+            out.append(self.pyramid3(x5_out))
+
+        out.append(self.out(x5_out))
 
         feature_maps = (x1_out, x2_out, x3_out, x4_out, x5_out)
 
